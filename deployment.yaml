@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-node-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: my-node-app
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      labels:
+        name: my-node-app
+        tier: dev
+    spec:
+      containers:
+        - name: my-node-app
+          imagePullPolicy: IfNotPresent
+          image: agustincharry/test-timeout:1.1
+          ports:
+            - containerPort: 3000
+        - image: nginx:1.15
+          imagePullPolicy: IfNotPresent
+          name: nginx
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: 300m
+              memory: 512Mi
+            requests:
+              cpu: 200m
+              memory: 256Mi
+          volumeMounts:
+          - mountPath: /etc/nginx/conf.d
+            name: conf
+      volumes:
+      - name: conf
+        configMap:
+          name: nginx
+  strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxUnavailable: 0
